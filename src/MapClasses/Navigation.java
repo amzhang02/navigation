@@ -10,6 +10,17 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Navigation {
+    HashMap<Integer, LinkedList<Coordinate>> waypointMap = new HashMap<>();
+    HashMap<Integer, Node> nodeMap = new HashMap<>();
+    double scalex;
+    double scaley;
+    double maxlat;
+    double maxlong;
+    double minlat;
+    double minlong;
+    Node startNode;
+    Node endNode;
+
     public Navigation() {
         readFiles("Catlin1-allroads");
     }
@@ -23,9 +34,6 @@ public class Navigation {
             this.longitude = longitude;
         }
     }
-
-    HashMap<Integer, LinkedList<Coordinate>> waypointMap = new HashMap<>();
-    HashMap<Integer, Node> nodeMap = new HashMap<>();
 
     public void readFiles(String folder) {
         clear();
@@ -96,42 +104,54 @@ public class Navigation {
     private void clear() {
     }
 
-    public void drawGraph(Graphics2D pen, int width, int height){
-        double maxlat = -99999999;
-        double maxlong = -99999999;
-        double minlat = 99999999;
-        double minlong = 99999999;
-        double scalex;
-        double scaley;
-
-        for(LinkedList<Coordinate> assList : waypointMap.values()){
-            for(Coordinate asshole : assList){
-                if(maxlat < asshole.latitude){
-                    maxlat = asshole.latitude;
+    public void scaling(int width, int height){
+        maxlat = -99999999;
+        maxlong = -99999999;
+        minlat = 99999999;
+        minlong = 99999999;
+        for(LinkedList<Coordinate> waypointLinkedList : waypointMap.values()){
+            for(Coordinate coordinate : waypointLinkedList){
+                if(maxlat < coordinate.latitude){
+                    maxlat = coordinate.latitude;
                 }
-                if(maxlong < asshole.longitude){
-                    maxlong = asshole.longitude;
+                if(maxlong < coordinate.longitude){
+                    maxlong = coordinate.longitude;
                 }
-                if(minlat > asshole.latitude){
-                    minlat = asshole.latitude;
+                if(minlat > coordinate.latitude){
+                    minlat = coordinate.latitude;
                 }
-                if(minlong > asshole.longitude){
-                    minlong = asshole.longitude;
+                if(minlong > coordinate.longitude){
+                    minlong = coordinate.longitude;
                 }
             }
         }
 
         scalex = width/(maxlong-minlong);
         scaley = height/(maxlat-minlat);
+    }
+    public void drawGraph(Graphics2D pen, int width, int height){
+        scaling(width, height);
 
-        for(LinkedList<Coordinate> assList : waypointMap.values()){
-            for(int i = 0; i < assList.size() - 1; i++){
-                int x1 = convertCoords(assList.get(i).longitude, scalex, minlong, width);
-                int x2 = convertCoords(assList.get(i+1).longitude, scalex, minlong, width);
-                int y1 = convertCoords(assList.get(i).latitude, scaley, minlat, height);
-                int y2 = convertCoords(assList.get(i+1).latitude, scaley, minlat, height);
+        for(LinkedList<Coordinate> waypointLinkedList : waypointMap.values()){
+            for(int i = 0; i < waypointLinkedList.size() - 1; i++){
+                int x1 = convertCoords(waypointLinkedList.get(i).longitude, scalex, minlong, width);
+                int x2 = convertCoords(waypointLinkedList.get(i+1).longitude, scalex, minlong, width);
+                int y1 = convertCoords(waypointLinkedList.get(i).latitude, scaley, minlat, height);
+                int y2 = convertCoords(waypointLinkedList.get(i+1).latitude, scaley, minlat, height);
                 pen.drawLine(x1, y1, x2, y2);
             }
+        }
+
+        if(startNode != null){
+            pen.setColor(Color.red);
+            pen.drawOval(convertCoords(startNode.nodeLong, scalex, minlong, width) - 5,
+                    convertCoords(startNode.nodeLat, scaley, minlat, height) - 5, 10, 10);
+        }
+
+        if(endNode != null){
+            pen.setColor(Color.green);
+            pen.drawOval(convertCoords(endNode.nodeLong, scalex, minlong, width) - 5,
+                    convertCoords(endNode.nodeLat, scaley, minlat, height) - 5, 10, 10);
         }
         //pen.drawLine(0, 0, 169, 420);
     }
@@ -166,7 +186,24 @@ public class Navigation {
     }
 
     public void addPoint(int x, int y, int height, int width) {
-        Node closestNode;
+        Node closestNode = null;
+        double minDistance = 999999999;
+        double currentDistance;
+        scaling(width, height);
+        for(Node node : nodeMap.values()) {
+            currentDistance = Math.sqrt(Math.pow((x - convertCoords(node.nodeLong, scalex, minlong, width)), 2) +
+                    Math.pow((y - convertCoords(node.nodeLat, scaley, minlat, height)), 2));
+            if(currentDistance < minDistance) {
+                minDistance = currentDistance;
+                closestNode = node;
+            }
+        }
 
+        if(startNode != null){
+            endNode = closestNode;
+        }
+        else{
+            startNode = closestNode;
+        }
     }
 }
