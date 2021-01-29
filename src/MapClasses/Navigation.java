@@ -5,9 +5,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 public class Navigation {
     HashMap<Integer, LinkedList<Coordinate>> waypointMap = new HashMap<>();
@@ -149,11 +147,16 @@ public class Navigation {
         }
 
         if(endNode != null){
+            Node currentNode = endNode;
+            while(currentNode.prev != null){
+                pen.setColor(Color.blue);
+                pen.drawOval(convertCoords(currentNode.nodeLong, scalex, minlong, width) - 5,
+                        convertCoords(currentNode.nodeLat, scaley, minlat, height) - 5, 10, 10);
+            }
             pen.setColor(Color.green);
             pen.drawOval(convertCoords(endNode.nodeLong, scalex, minlong, width) - 5,
                     convertCoords(endNode.nodeLat, scaley, minlat, height) - 5, 10, 10);
         }
-        //pen.drawLine(0, 0, 169, 420);
     }
 
     public int convertCoords(double coordinate, double scale, double min, double dimensions){
@@ -165,6 +168,9 @@ public class Navigation {
         int nodeID;
         double nodeLong;
         double nodeLat;
+        double distance;
+        boolean visited;
+        Node prev;
 
         public Node(int nodeID, double nodeLong, double nodeLat) {
             this.nodeID = nodeID;
@@ -175,13 +181,13 @@ public class Navigation {
 
     class Path {
         double length;
-        Node startNode;
-        Node endNode;
+        Node from;
+        Node to;
 
         Path(double length, Node start, Node end) {
             this.length = length;
-            this.startNode = start;
-            this.endNode = end;
+            this.from = start;
+            this.to = end;
         }
     }
 
@@ -204,6 +210,36 @@ public class Navigation {
         }
         else{
             startNode = closestNode;
+        }
+    }
+
+    public void findPath(){
+        for(Node node : nodeMap.values()){
+            node.distance = Double.POSITIVE_INFINITY;
+            node.visited = false;
+        }
+        startNode.distance = 0;
+        startNode.visited = true;
+
+        PriorityQueue<Node> frontier = new PriorityQueue<>(Comparator.comparingDouble(node -> node.distance));
+        for(Path path : startNode.nodeConnections){
+            path.to.distance = path.length;
+            path.to.prev = startNode;
+            frontier.add(path.to);
+        }
+        Node currentNode = null;
+        while(!frontier.isEmpty()){
+            currentNode = frontier.poll();
+            currentNode.visited = true;
+            for(Path path : currentNode.nodeConnections){
+                if(path.to.distance > path.length + currentNode.distance){
+                    path.to.distance = path.length + currentNode.distance;
+                    path.to.prev = currentNode;
+                }
+                if(!path.to.visited){
+                    frontier.add(path.to);
+                }
+            }
         }
     }
 }

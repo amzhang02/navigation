@@ -10,12 +10,14 @@ public class ControlPanel extends JPanel {
     JComboBox<String> chooseBox = new JComboBox<>();
     JLabel distance;
     JLabel numNodes;
+    ViewCanvas viewCanvas;
 
     class FindPathButtonListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // nav code stuff hehe
+            viewCanvas.myNav.findPath();
+            viewCanvas.draw();
         }
     }
 
@@ -34,7 +36,8 @@ public class ControlPanel extends JPanel {
 
         }
     }
-    public ControlPanel() {
+    public ControlPanel(ViewCanvas canvas) {
+        viewCanvas = canvas;
         JPanel actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout());
         actionPanel.setBorder(new TitledBorder("Path Finding"));
