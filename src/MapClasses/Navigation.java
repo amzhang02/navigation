@@ -67,9 +67,9 @@ public class Navigation {
                 String linkLabel = inStream.readUTF();
                 double length = inStream.readDouble();
                 byte way = inStream.readByte();
-                //nodes.get(firstNodeID).connections.add(new Connection(linkID, firstNodeID, lastNodeID, length));
+                nodeMap.get(firstNodeID).nodeConnections.add(new Path(length, nodeMap.get(firstNodeID), nodeMap.get(lastNodeID)));
                 if (way == 2) {
-                    //nodes.get(lastNodeID).connections.add(new Connection(-linkID, lastNodeID, firstNodeID, length));
+                    nodeMap.get(lastNodeID).nodeConnections.add(new Path(length, nodeMap.get(firstNodeID), nodeMap.get(lastNodeID)));
                 }
             }
             inStream.close();
@@ -229,17 +229,23 @@ public class Navigation {
         }
         Node currentNode = null;
         while(!frontier.isEmpty()){
+            System.out.println(frontier.size());
             currentNode = frontier.poll();
             currentNode.visited = true;
+            if(currentNode == endNode){
+                System.out.println("endNode found");
+                break;
+            }
             for(Path path : currentNode.nodeConnections){
                 if(path.to.distance > path.length + currentNode.distance){
                     path.to.distance = path.length + currentNode.distance;
                     path.to.prev = currentNode;
                 }
-                if(!path.to.visited){
+                if(!path.to.visited && !frontier.contains(path.to)){
                     frontier.add(path.to);
                 }
             }
         }
+        System.out.println(endNode.prev);
     }
 }

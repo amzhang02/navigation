@@ -16,8 +16,10 @@ public class ControlPanel extends JPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            System.out.println("starts");
             viewCanvas.myNav.findPath();
             viewCanvas.draw();
+            System.out.println("happens");
         }
     }
 
