@@ -148,10 +148,12 @@ public class Navigation {
 
         if(endNode != null){
             Node currentNode = endNode;
+            System.out.println(currentNode.prev);
             while(currentNode.prev != null){
                 pen.setColor(Color.blue);
                 pen.drawOval(convertCoords(currentNode.nodeLong, scalex, minlong, width) - 5,
                         convertCoords(currentNode.nodeLat, scaley, minlat, height) - 5, 10, 10);
+                currentNode = currentNode.prev;
             }
             pen.setColor(Color.green);
             pen.drawOval(convertCoords(endNode.nodeLong, scalex, minlong, width) - 5,
